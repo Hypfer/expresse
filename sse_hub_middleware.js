@@ -8,13 +8,12 @@ const sse_middleware = require("./sse_middleware");
  * @param options An ISseMiddlewareOptions to configure the middleware's behaviour.
  */
 function sseHub(options = {}) {
-    const { hub = new Hub() } = options;
+    const { hub = new Hub(), maxClients = 5 } = options;
     function middleware(req, res, next) {
         //We need this reference to later terminate the connection if required
         res.sse.res = res;
 
-        //we only allow 5 simultaneous connections
-        if (hub.clients.size > 4) {
+        if (hub.clients.size >= maxClients) {
             //Sets are iterated in insertion order. Therefore, to disconnect the oldest connection,
             //we just take the first value
             const clientToTerminate = hub.clients.values().next().value;

@@ -1,6 +1,6 @@
 const sseWrite = Symbol('@hypfer/expresse#sseWrite');
 function sseHandler(options = {}) {
-    const { keepAliveInterval = 5000, flushHeaders = true, flushAfterWrite = false } = options;
+    const { keepAliveInterval = 5000, flushHeaders = true, flushAfterWrite = false, maxSocketBufferSize = (100 * 1024) } = options;
     return (req, res, next) => {
         //=> Basic headers for an SSE session
         res.set({
@@ -11,7 +11,10 @@ function sseHandler(options = {}) {
         //=> Flush headers immediately
         // This has the advantage to 'test' the connection: if the client can't access this resource because of
         // CORS restrictions, the connection will fail instantly.
-        flushHeaders && res.flushHeaders();
+        if (flushHeaders === true) {
+            res.flushHeaders();
+        }
+
         //=> Start heartbeats (if not disabled)
         if (keepAliveInterval !== false) {
             if (typeof keepAliveInterval !== 'number') {
@@ -27,15 +30,17 @@ function sseHandler(options = {}) {
          * Writes on the response socket with respect to compression settings.
          */
         function write(chunk) {
-            // 200kb sounds reasonable. 1mb buffers max with 5 clients
-            if (res.socket.writableLength > 200 * 1024) {
+            if (res.socket.writableLength >= maxSocketBufferSize) {
                 //We simply abort here since that's less harmful than going OOM due to buffers getting huge
                 //Usually, missed SSE events shouldn't be an issue in almost all applications so it should be fine
                 return false;
             }
 
             res.write(chunk);
-            flushAfterWrite && res.flush();
+
+            if (flushAfterWrite === true) {
+                res.flush();
+            }
         }
         /**
          * Writes heartbeats at a regular rate on the socket.
