@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const compose_middleware_1 = require("compose-middleware");
+const compose_middleware = require("compose-middleware");
 const fmt = require("./sse_formatter");
-const sse_handler_middleware_1 = require("./sse_handler_middleware");
+const sse_handler_middleware = require("./sse_handler_middleware");
 /**
  * SSE middleware that configures an Express response for an SSE session, and installs the `sse.*` functions
  * on the Response object.
@@ -12,7 +12,7 @@ const sse_handler_middleware_1 = require("./sse_handler_middleware");
 function sse(options = {}) {
     const { serializer } = options;
     function middleware(req, res, next) {
-        const write = res[sse_handler_middleware_1.sseWrite];
+        const write = res[sse_handler_middleware.sseWrite];
         //=> Install the sse*() functions on Express' Response
         res.sse = {
             data(data, id) {
@@ -28,6 +28,6 @@ function sse(options = {}) {
         //=> Done
         next();
     }
-    return compose_middleware_1.compose(sse_handler_middleware_1.sseHandler(options), middleware);
+    return compose_middleware.compose(sse_handler_middleware.sseHandler(options), middleware);
 }
 exports.sse = sse;

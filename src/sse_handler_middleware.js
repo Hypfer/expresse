@@ -29,6 +29,13 @@ function sseHandler(options = {}) {
          * Writes on the response socket with respect to compression settings.
          */
         function write(chunk) {
+            // 200kb sounds reasonable. 1mb buffers max with 5 clients
+            if (res.socket.writableLength > 200 * 1024) {
+                //We simply abort here since that's less harmful than going OOM due to buffers getting huge
+                //Usually, missed SSE events shouldn't be an issue in almost all applications so it should be fine
+                return false;
+            }
+
             res.write(chunk);
             flushAfterWrite && res.flush();
         }

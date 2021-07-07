@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const compose_middleware_1 = require("compose-middleware");
-const hub_1 = require("./hub");
-const sse_middleware_1 = require("./sse_middleware");
+const compose_middleware = require("compose-middleware");
+const hub = require("./hub");
+const sse_middleware = require("./sse_middleware");
 /**
  * SSE middleware that configures an Express response for an SSE session, installs `sse.*` functions on the Response
  * object, as well as the `sse.broadcast.*` variants.
@@ -10,13 +10,28 @@ const sse_middleware_1 = require("./sse_middleware");
  * @param options An ISseMiddlewareOptions to configure the middleware's behaviour.
  */
 function sseHub(options = {}) {
-    const { hub = new hub_1.Hub() } = options;
+    const { hub = new hub.Hub() } = options;
     function middleware(req, res, next) {
+        //We need this reference to later terminate the connection if required
+        res.sse.res = res;
+
+        //we only allow 5 simultaneous connections
+        if (hub.clients.size > 4) {
+            //Sets are iterated in insertion order. Therefore, to disconnect the oldest connection,
+            //we just take the first value
+            const clientToTerminate = hub.clients.values().next().value;
+            clientToTerminate.res.end();
+
+            hub.clients.delete(clientToTerminate);
+        }
+
         //=> Register the SSE functions of that client on the hub
         hub.register(res.sse);
+
         //=> Unregister the user from the hub when its connection gets closed (close=client, finish=server)
         res.once('close', () => hub.unregister(res.sse));
         res.once('finish', () => hub.unregister(res.sse));
+
         //=> Make hub's functions available on the response
         res.sse.broadcast = {
             data: hub.data.bind(hub),
@@ -26,6 +41,6 @@ function sseHub(options = {}) {
         //=> Done
         next();
     }
-    return compose_middleware_1.compose(sse_middleware_1.sse(options), middleware);
+    return compose_middleware.compose(sse_middleware.sse(options), middleware);
 }
 exports.sseHub = sseHub;
