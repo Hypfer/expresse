@@ -1,6 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.sseWrite = Symbol('@toverux/expresse#sseWrite');
+const sseWrite = Symbol('@hypfer/expresse#sseWrite');
 function sseHandler(options = {}) {
     const { keepAliveInterval = 5000, flushHeaders = true, flushAfterWrite = false } = options;
     return (req, res, next) => {
@@ -22,7 +20,7 @@ function sseHandler(options = {}) {
             startKeepAlives(keepAliveInterval);
         }
         //=> Attach the res.write wrapper function to the response for internal use
-        res[exports.sseWrite] = write;
+        res[sseWrite] = write;
         //=> Done.
         next();
         /**
@@ -51,4 +49,6 @@ function sseHandler(options = {}) {
         }
     };
 }
-exports.sseHandler = sseHandler;
+
+sseHandler.sseWrite = sseWrite;
+module.exports = sseHandler;

@@ -1,7 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const compose_middleware = require("compose-middleware");
-const hub = require("./hub");
+const Hub = require("./hub");
 const sse_middleware = require("./sse_middleware");
 /**
  * SSE middleware that configures an Express response for an SSE session, installs `sse.*` functions on the Response
@@ -10,7 +8,7 @@ const sse_middleware = require("./sse_middleware");
  * @param options An ISseMiddlewareOptions to configure the middleware's behaviour.
  */
 function sseHub(options = {}) {
-    const { hub = new hub.Hub() } = options;
+    const { hub = new Hub() } = options;
     function middleware(req, res, next) {
         //We need this reference to later terminate the connection if required
         res.sse.res = res;
@@ -41,6 +39,6 @@ function sseHub(options = {}) {
         //=> Done
         next();
     }
-    return compose_middleware.compose(sse_middleware.sse(options), middleware);
+    return compose_middleware.compose(sse_middleware(options), middleware);
 }
-exports.sseHub = sseHub;
+module.exports = sseHub;

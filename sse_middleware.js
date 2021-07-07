@@ -28,6 +28,7 @@ function sse(options = {}) {
         //=> Done
         next();
     }
-    return compose_middleware.compose(sse_handler_middleware.sseHandler(options), middleware);
+    return compose_middleware.compose(sse_handler_middleware(options), middleware);
 }
-exports.sse = sse;
+
+module.exports = sse;

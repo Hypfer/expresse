@@ -1,5 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+
 class Hub {
     constructor() {
         this.clients = new Set();
@@ -20,4 +19,4 @@ class Hub {
         this.clients.forEach(client => client.comment(comment));
     }
 }
-exports.Hub = Hub;
+module.exports = Hub;
