@@ -18,6 +18,7 @@ function sseHub(options = {}) {
             //we just take the first value
             const clientToTerminate = hub.clients.values().next().value;
             clientToTerminate.res.end();
+            clientToTerminate.res.socket.destroy();
 
             hub.clients.delete(clientToTerminate);
         }
@@ -26,8 +27,13 @@ function sseHub(options = {}) {
         hub.register(res.sse);
 
         //=> Unregister the user from the hub when its connection gets closed (close=client, finish=server)
-        res.once('close', () => hub.unregister(res.sse));
-        res.once('finish', () => hub.unregister(res.sse));
+        res.once('close', () => {
+            hub.unregister(res.sse);
+        });
+
+        res.once('finish', () => {
+            hub.unregister(res.sse);
+        });
 
         //=> Make hub's functions available on the response
         res.sse.broadcast = {

@@ -1,6 +1,13 @@
 const sseWrite = Symbol('@hypfer/expresse#sseWrite');
 function sseHandler(options = {}) {
-    const { keepAliveInterval = 5000, flushHeaders = true, flushAfterWrite = false, maxSocketBufferSize = (100 * 1024) } = options;
+    const {
+        keepAliveInterval = 5000,
+        flushHeaders = true,
+        flushAfterWrite = false,
+        maxSocketBufferSize = (100 * 1024),
+        terminateStaleConnections = false
+    } = options;
+
     return (req, res, next) => {
         //=> Basic headers for an SSE session
         res.set({
@@ -33,6 +40,11 @@ function sseHandler(options = {}) {
             if (res.socket.writableLength >= maxSocketBufferSize) {
                 //We simply abort here since that's less harmful than going OOM due to buffers getting huge
                 //Usually, missed SSE events shouldn't be an issue in almost all applications so it should be fine
+
+                if (terminateStaleConnections === true) {
+                    res.socket.destroy();
+                }
+
                 return false;
             }
 
