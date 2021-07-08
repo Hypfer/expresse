@@ -23,6 +23,9 @@ function sse(options = {}) {
             },
             comment(comment) {
                 write(fmt.comment(comment));
+            },
+            write(data) {
+                write(data);
             }
         };
         //=> Done

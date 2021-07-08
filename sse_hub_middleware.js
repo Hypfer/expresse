@@ -8,19 +8,25 @@ const sse_middleware = require("./sse_middleware");
  * @param options An ISseMiddlewareOptions to configure the middleware's behaviour.
  */
 function sseHub(options = {}) {
-    const { hub = new Hub(), maxClients = 5 } = options;
+    const { hub = new Hub(), maxClients = 5, rejectWhenFull = false } = options;
     function middleware(req, res, next) {
         //We need this reference to later terminate the connection if required
         res.sse.res = res;
 
         if (hub.clients.size >= maxClients) {
-            //Sets are iterated in insertion order. Therefore, to disconnect the oldest connection,
-            //we just take the first value
-            const clientToTerminate = hub.clients.values().next().value;
-            clientToTerminate.res.end();
-            clientToTerminate.res.socket.destroy();
+            if (rejectWhenFull === true){
+                res.end();
+                res.socket.destroy();
+                return;
+            } else {
+                //Sets are iterated in insertion order. Therefore, to disconnect the oldest connection,
+                //we just take the first value
+                const clientToTerminate = hub.clients.values().next().value;
+                clientToTerminate.res.end();
+                clientToTerminate.res.socket.destroy();
 
-            hub.clients.delete(clientToTerminate);
+                hub.clients.delete(clientToTerminate);
+            }
         }
 
         //=> Register the SSE functions of that client on the hub

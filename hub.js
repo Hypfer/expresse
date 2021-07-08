@@ -1,3 +1,4 @@
+const fmt = require("./sse_formatter");
 
 class Hub {
     constructor() {
@@ -13,7 +14,9 @@ class Hub {
         this.clients.forEach(client => client.data(data, id));
     }
     event(event, data, id) {
-        this.clients.forEach(client => client.event(event, data, id));
+        const formattedData = fmt.message(event, data, id);
+
+        this.clients.forEach(client => client.write(formattedData));
     }
     comment(comment) {
         this.clients.forEach(client => client.comment(comment));
